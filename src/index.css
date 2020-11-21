@@ -4,7 +4,14 @@ body {
   }
   
   ol, ul {
-    padding-left: 30px;
+    padding-left: 0px;
+    width: 210px;
+    list-style: none;
+  }
+
+  li button {
+      padding: 0.25em;
+      width: 100%;
   }
   
   .board-row::after {
