@@ -50,12 +50,13 @@ class Game extends React.Component {
         super(props);
         this.state = {
             history: [{
-                squares: Array(9).fill(null),
+                squares: Array(9).fill(0),
                 moveIndex: -1
             }],
             stepNumber: 0,
-            xIsNext: true
+            player1IsNext: true
         };
+        this.playerLetters = ['X','O'];
     }
 
     handleClick(i) {
@@ -65,33 +66,38 @@ class Game extends React.Component {
         const squares = current.squares.slice();
         if (calculateWinner(squares) || squares[i]) {
             return;
-        } 
-        squares[i] = this.state.xIsNext ? 'X' : 'O';
+        }
+        squares[i] = this.state.player1IsNext ? 1 : 2;
         this.setState({
             history: history.concat([{
                 squares: squares,
                 moveIndex: i
             }]),
             stepNumber: history.length,
-            xIsNext: !this.state.xIsNext
+            player1IsNext: !this.state.player1IsNext
         });
     }
 
     jumpTo(step) {
         this.setState({
             stepNumber: step,
-            xIsNext: (step % 2) === 0
-        })
+            player1IsNext: (step % 2) === 0
+        });
     }
 
     render() {
         const history = this.state.history;
         const current = history[this.state.stepNumber];
         const winner = calculateWinner(current.squares);
-
+        // translate board content to player letters and blanks
+        const displaySquares = current.squares.map((square) => 
+            square === -1 ? null : this.playerLetters[square - 1]
+        );
+        
+        // build moves list
         const moves = history.map((step,move) => {
             const moveIndex = step.moveIndex;
-            const player = step.squares[moveIndex];
+            const player = this.playerLetters[step.squares[moveIndex] - 1];
             const coordinate = [Math.floor(moveIndex / 3), moveIndex % 3];
 
             const desc = move ? `Go to move #${move}: ${player} 
@@ -103,20 +109,21 @@ class Game extends React.Component {
             );
         });
 
+        // check for winner
         let status = '';
-        if (winner === 'X' || winner === 'O') {
-            status = `Winner: ${winner}`;
-        } else if (winner === 'draw')
+        if (winner === 1 || winner === 2) {
+            status = `Winner: ${this.playerLetters[winner - 1]}`;
+        } else if (winner === -1)
             status = 'The game is a draw';
         else {
-            status = `Next player: ${this.state.xIsNext? 'X' : 'O'}`;
+            status = `Next player: ${this.state.player1IsNext? this.playerLetters[0] : this.playerLetters[1]}`;
         }
 
         return (
             <div className="game">
                 <div className="game-board">
                     <Board
-                        squares={current.squares}
+                        squares={displaySquares}
                         onClick={(i) => this.handleClick(i)}
                     />
                 </div>
@@ -157,9 +164,9 @@ function calculateWinner (sq) {
     }
 
     // game is draw
-    if (!sq.includes(null)) {
-        return 'draw';
+    if (!sq.includes(0)) {
+        return -1;
     }
 
-    return null;
+    return 0; // game continues
 }
